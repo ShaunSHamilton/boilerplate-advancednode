@@ -1,5 +1,5 @@
 "use strict";
-
+require('dotenv').config()
 const express = require("express");
 const fccTesting = require("./freeCodeCamp/fcctesting.js");
 
@@ -13,7 +13,7 @@ app.set('view engine', 'pug');
 
 app.route("/").get((req, res) => {
   //Change the response to render the Pug template
-  res.render(process.cwd() + '/views/pug/index');
+  res.render('Load your view here');
 });
 
 app.listen(process.env.PORT || 3000, () => {
