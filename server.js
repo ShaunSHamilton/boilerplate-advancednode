@@ -4,6 +4,7 @@ const express = require("express");
 const fccTesting = require("./freeCodeCamp/fcctesting.js");
 const session = require('express-session');
 const passport = require('passport');
+const myDB = require('./connection');
 
 const app = express();
 
@@ -20,6 +21,15 @@ app.use(session({
 }));
 app.use(passport.initialize());
 app.use(passport.session());
+
+myDB(listDatabases)
+async function listDatabases(client) {
+  let databasesList = await client.db().admin().listDatabases();
+
+  console.log("Databases:");
+  databasesList.databases.forEach(db => console.log(` - ${db.name}`));
+};
+
 
 app.route("/").get((req, res) => {
   //Change the response to render the Pug template
