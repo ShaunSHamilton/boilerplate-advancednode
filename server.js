@@ -5,6 +5,7 @@ const fccTesting = require("./freeCodeCamp/fcctesting.js");
 const session = require('express-session');
 const passport = require('passport');
 const myDB = require('./connection');
+const ObjectID = require('mongodb').ObjectID;
 
 const app = express();
 
@@ -22,15 +23,6 @@ app.use(session({
 app.use(passport.initialize());
 app.use(passport.session());
 
-myDB(listDatabases)
-async function listDatabases(client) {
-  let databasesList = await client.db().admin().listDatabases();
-
-  console.log("Databases:");
-  databasesList.databases.forEach(db => console.log(` - ${db.name}`));
-};
-
-
 app.route("/").get((req, res) => {
   //Change the response to render the Pug template
   res.render('pug', { title: 'Hello', message: 'Please login' });
@@ -39,3 +31,18 @@ app.route("/").get((req, res) => {
 app.listen(process.env.PORT || 3000, () => {
   console.log("Listening on port " + process.env.PORT);
 });
+
+passport.serializeUser((user, done) => {
+  done(null, user._id);
+});
+passport.deserializeUser((id, done) => {
+  myDB(async (client) => {
+    await client.db('myproject').collection('users').findOne(
+      { _id: new ObjectID(id) },
+      (err, doc) => {
+        done(null, null);
+      }
+    );
+  });
+});
+
