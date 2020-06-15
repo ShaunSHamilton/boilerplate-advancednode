@@ -33,7 +33,10 @@ myDB(async (client) => {
   });
   app.route("/login").post(passport.authenticate('local', { failureRedirect: '/' }), (req, res) => {
     res.render('pug/profile');
-  })
+  });
+  app.route('/profile').get(ensureAuthenticated, (req, res) => {
+    res.render('pug/profile');
+  });
 
   passport.serializeUser((user, done) => {
     done(null, user._id);
@@ -68,6 +71,13 @@ myDB(async (client) => {
 app.listen(process.env.PORT || 3000, () => {
   console.log("Listening on port " + process.env.PORT);
 });
+
+function ensureAuthenticated(req, res, next) {
+  if (req.isAuthenticated()) {
+    return next();
+  }
+  res.redirect('/');
+};
 
 //--------------------------------
 // Just to pass current fCC tests
