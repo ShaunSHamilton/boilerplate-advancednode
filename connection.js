@@ -5,8 +5,8 @@ const { MongoClient } = require('mongodb');
 async function main(callback) {
     const URI = process.env.MONGO_URI; // Declare MONGO_URI in your .env file
     const client = new MongoClient(URI, { useNewUrlParser: true, useUnifiedTopology: true });
+
     try {
-        // MongoClient.connect(URI, { useNewUrlParser: true, useUnifiedTopology: true }, (err, client) => { callback(err, client) });
         // Connect to the MongoDB cluster
         await client.connect();
 
@@ -17,9 +17,6 @@ async function main(callback) {
         // Catch any errors
         console.error(e);
         throw new Error('Unable to Connect to Database')
-    } finally {
-        // Ensure to close the connection
-        // await client.close();
     }
 }
 

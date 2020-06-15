@@ -43,6 +43,7 @@ myDB(async (client) => {
       { _id: new ObjectID(id) },
       (err, doc) => {
         done(null, doc);
+        client.close();
       }
     );
   });
@@ -53,12 +54,11 @@ myDB(async (client) => {
         if (err) { return done(err); }
         if (!user) { return done(null, false); }
         if (password !== user.password) { return done(null, false); }
+        client.close();
         return done(null, user);
       });
     }
   ));
-
-  // client.close();
 }).catch((e) => {
   app.route('/').get((req, res) => {
     res.render('pug', { title: e, message: 'Unable to login' });
