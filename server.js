@@ -31,10 +31,6 @@ myDB(async (client) => {
     res.render('pug', { title: 'Connected to Database', message: 'Please login' });
   });
 
-  app.listen(process.env.PORT || 3000, () => {
-    console.log("Listening on port " + process.env.PORT);
-  });
-
   passport.serializeUser((user, done) => {
     done(null, user._id);
   });
@@ -50,4 +46,8 @@ myDB(async (client) => {
   app.route('/').get((req, res) => {
     res.render('pug', { title: e, message: 'Unable to login' });
   });
+});
+
+app.listen(process.env.PORT || 3000, () => {
+  console.log("Listening on port " + process.env.PORT);
 });

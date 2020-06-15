@@ -15,7 +15,7 @@ async function main(callback) {
 
     } catch (e) {
         // Catch any errors
-        //console.error(e);
+        console.error(e);
         throw new Error('Unable to Connect to Database')
     } finally {
         // Ensure to close the connection
