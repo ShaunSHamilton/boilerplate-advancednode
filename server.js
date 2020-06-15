@@ -35,7 +35,7 @@ myDB(async (client) => {
     res.render('pug/profile');
   });
   app.route('/profile').get(ensureAuthenticated, (req, res) => {
-    res.render('pug/profile');
+    res.render('pug/profile', { username: req.user.username });
   });
 
   passport.serializeUser((user, done) => {
@@ -86,3 +86,5 @@ function ensureAuthenticated(req, res, next) {
 
 // mongo.connect
 // app.listen } }
+
+// /views/pug/profile', {username: req.user.username}
