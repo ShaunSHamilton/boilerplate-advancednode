@@ -29,8 +29,11 @@ myDB(async (client) => {
 
   app.route("/").get((req, res) => {
     //Change the response to render the Pug template
-    res.render('pug', { title: 'Connected to Database', message: 'Please login' });
+    res.render('pug', { title: 'Connected to Database', message: 'Please login', showLogin: true });
   });
+  app.route("/login").post(passport.authenticate('local', { failureRedirect: '/' }), (req, res) => {
+    res.render('pug/profile');
+  })
 
   passport.serializeUser((user, done) => {
     done(null, user._id);
@@ -54,6 +57,8 @@ myDB(async (client) => {
       });
     }
   ));
+
+  // client.close();
 }).catch((e) => {
   app.route('/').get((req, res) => {
     res.render('pug', { title: e, message: 'Unable to login' });
