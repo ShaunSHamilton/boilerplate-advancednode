@@ -19,7 +19,8 @@ app.set('view engine', 'pug');
 app.use(session({
   secret: process.env.SESSION_SECRET,
   resave: true,
-  saveUninitialized: true
+  saveUninitialized: true,
+  cookie: { secure: false }
 }));
 app.use(passport.initialize());
 app.use(passport.session());
@@ -29,10 +30,10 @@ myDB(async (client) => {
 
   app.route("/").get((req, res) => {
     //Change the response to render the Pug template
-    res.render('pug', { title: 'Connected to Database', message: 'Please login', showLogin: true });
+    res.render('pug', { title: 'Connected to Database', message: 'Please login', showLogin: true, showRegistration: true });
   });
   app.route("/login").post(passport.authenticate('local', { failureRedirect: '/' }), (req, res) => {
-    res.render('pug/profile');
+    res.render('pug/profile', { username: req.user.username });
   });
   app.route('/profile').get(ensureAuthenticated, (req, res) => {
     res.render('pug/profile', { username: req.user.username });
@@ -41,6 +42,27 @@ myDB(async (client) => {
     req.logout();
     res.redirect('/');
   });
+  app.route('/register').post((req, res, next) => {
+    myDataBase.findOne({ username: req.body.username }, function (err, user) {
+      if (err) {
+        next(err);
+      } else if (user) {
+        res.redirect('/');
+      } else {
+        myDataBase.insertOne({ username: req.body.username, password: req.body.password }, (err, doc) => {
+          if (err) {
+            res.redirect('/');
+          } else {
+            next(null, user);
+          }
+        }
+        )
+      }
+    })
+  }, passport.authenticate('local', { failureRedirect: '/' }), (req, res, next) => {
+    res.redirect('/profile');
+  }
+  );
   app.use((req, res, next) => {
     res.status(404).type('text').send('Not Found');
   });
@@ -49,13 +71,10 @@ myDB(async (client) => {
     done(null, user._id);
   });
   passport.deserializeUser((id, done) => {
-    myDataBase.findOne(
-      { _id: new ObjectID(id) },
-      (err, doc) => {
-        done(null, doc);
-        client.close();
-      }
-    );
+    myDataBase.findOne({ _id: new ObjectID(id) }, (err, doc) => {
+      if (err) return console.error(err);
+      done(null, doc);
+    });
   });
   passport.use(new LocalStrategy(
     function (username, password, done) {
@@ -64,7 +83,6 @@ myDB(async (client) => {
         if (err) { return done(err); }
         if (!user) { return done(null, false); }
         if (password !== user.password) { return done(null, false); }
-        client.close();
         return done(null, user);
       });
     }
