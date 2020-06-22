@@ -59,3 +59,5 @@ app.listen(process.env.PORT || 3000, () => {
 
 // require('passport-github')
 ///passport.use( new GitHubStrategy callbackURL: 'route' process.env.GITHUB_CLIENT_SECRET process.env.GITHUB_CLIENT_ID
+
+//GitHubStrategy  db.collection   socialusers   return cb
