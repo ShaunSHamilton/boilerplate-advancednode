@@ -56,3 +56,6 @@ app.listen(process.env.PORT || 3000, () => {
 
 // app.route('/auth/github').get(passport.authenticate('github'));
 // app.route('/auth/github/callback').get(passport.authenticate('github', { failureRedirect: '/' }), (req, res) => { res.redirect('/profile'); })
+
+// require('passport-github')
+///passport.use( new GitHubStrategy callbackURL: 'route' process.env.GITHUB_CLIENT_SECRET process.env.GITHUB_CLIENT_ID
