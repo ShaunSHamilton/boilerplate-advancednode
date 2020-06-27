@@ -10,6 +10,9 @@ const auth = require('./auth.js');
 const app = express();
 const http = require('http').Server(app);
 const io = require('socket.io')(http);
+const passportSocketIo = require('passport.socketio');
+const cookieParser = require('cookie-parser');
+const sessionStore = new session.MemoryStore();
 
 
 fccTesting(app); //For FCC testing purposes
@@ -26,6 +29,15 @@ app.use(session({
 }));
 app.use(passport.initialize());
 app.use(passport.session());
+
+io.use(
+  passportSocketIo.authorize({
+    cookieParser: cookieParser,
+    key: 'express.sid',
+    secret: process.env.SESSION_SECRET,
+    store: sessionStore
+  })
+);
 
 myDB(async (client) => {
   const myDataBase = await client.db('myproject').collection('users');
