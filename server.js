@@ -7,8 +7,10 @@ const passport = require('passport');
 const myDB = require('./connection');
 const routes = require('./routes');
 const auth = require('./auth.js');
-
 const app = express();
+const http = require('http').Server(app);
+const io = require('socket.io')(http);
+
 
 fccTesting(app); //For FCC testing purposes
 app.use("/public", express.static(process.cwd() + "/public"));
@@ -30,6 +32,11 @@ myDB(async (client) => {
 
   routes(app, myDataBase);
   auth(app, myDataBase);
+
+  io.on('connection', socket => {
+    console.log('A user has connected');
+  });
+
 }).catch((e) => {
   app.route('/').get((req, res) => {
     res.render('pug', { title: e, message: 'Unable to login' });
