@@ -8,12 +8,12 @@ const myDB = require('./connection');
 const routes = require('./routes');
 const auth = require('./auth.js');
 const app = express();
-const http = require('http').Server(app);
-const io = require('socket.io')(http);
+const socketio = require('socket.io');
 const passportSocketIo = require('passport.socketio');
 const cookieParser = require('cookie-parser');
 const sessionStore = new session.MemoryStore();
-
+const http = require('http').createServer(app);
+const io = socketio.listen(http);
 
 fccTesting(app); //For FCC testing purposes
 app.use("/public", express.static(process.cwd() + "/public"));
@@ -30,6 +30,7 @@ app.use(session({
 app.use(passport.initialize());
 app.use(passport.session());
 
+
 io.use(
   passportSocketIo.authorize({
     cookieParser: cookieParser,
@@ -38,7 +39,6 @@ io.use(
     store: sessionStore
   })
 );
-
 myDB(async (client) => {
   const myDataBase = await client.db('myproject').collection('users');
 
@@ -53,6 +53,9 @@ myDB(async (client) => {
       currentUsers,
       connected: true
     });
+    socket.on('chat message', (message) => {
+      io.emit('chat message', { name: socket.request.user.name, message })
+    })
     console.log('A user has connected');
     socket.on('disconnect', () => {
       console.log('A user has disconnected');

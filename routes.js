@@ -13,7 +13,7 @@ module.exports = function (app, myDataBase) {
         res.render('pug/profile', { username: req.user.username });
     });
     app.route('/chat').get(ensureAuthenticated, (req, res) => {
-        res.render('pug/chat', { user: req.user });
+        res.render('pug/chat', { user: req.user.username });
     });
     app.route('/logout').get((req, res) => {
         req.logout();
@@ -38,7 +38,7 @@ module.exports = function (app, myDataBase) {
             }
         })
     }, passport.authenticate('local', { failureRedirect: '/' }), (req, res, next) => {
-        res.redirect('/profile');
+        res.redirect('/chat');
     }
     );
 
