@@ -7,13 +7,15 @@ module.exports = function (app, myDataBase) {
         res.render('pug', { title: 'Connected to Database', message: 'Please login', showLogin: true, showRegistration: true, showSocialAuth: true });
     });
     app.route("/login").post(passport.authenticate('local', { failureRedirect: '/' }), (req, res) => {
-        res.render('pug/profile', { username: req.user.username });
+        res.redirect('/chat')
+        // res.render('pug/chat', { user: req.user });
     });
     app.route('/profile').get(ensureAuthenticated, (req, res) => {
         res.render('pug/profile', { username: req.user.username });
     });
     app.route('/chat').get(ensureAuthenticated, (req, res) => {
-        res.render('pug/chat', { user: req.user.username });
+        console.log("Session: ", req.session)
+        res.render('pug/chat', { user: req.user });
     });
     app.route('/logout').get((req, res) => {
         req.logout();

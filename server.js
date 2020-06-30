@@ -49,7 +49,7 @@ myDB(async (client) => {
   io.on('connection', socket => {
     ++currentUsers;
     io.emit('user', {
-      name: socket.request.user.name,
+      name: socket.request.user.username,
       currentUsers,
       connected: true
     });
@@ -61,7 +61,7 @@ myDB(async (client) => {
       console.log('A user has disconnected');
       --currentUsers;
       io.emit('user', {
-        name: socket.request.user.name,
+        name: socket.request.user.username,
         currentUsers,
         connected: false
       });
@@ -74,9 +74,13 @@ myDB(async (client) => {
   });
 });
 
-app.listen(process.env.PORT || 3000, () => {
-  console.log("Listening on port " + process.env.PORT);
-});
+http.listen('8080', () => {
+  console.log('Listening');
+})
+
+// app.listen(process.env.PORT || 3000, () => {
+//   console.log("Listening on port " + process.env.PORT);
+// });
 
 
 
