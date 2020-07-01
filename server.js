@@ -8,13 +8,13 @@ const myDB = require('./connection');
 const routes = require('./routes');
 const auth = require('./auth.js');
 const app = express();
-const socketio = require('socket.io');
+// const socketio = require('socket.io');
 const passportSocketIo = require('passport.socketio');
 const cookieParser = require('cookie-parser');
 const sessionStore = new session.MemoryStore();
-const sharedsession = require("express-socket.io-session");
+// const sharedsession = require("express-socket.io-session");
 const http = require('http').createServer(app);
-const io = socketio(http);
+const io = require('socket.io')(http);
 
 fccTesting(app); //For FCC testing purposes
 app.use("/public", express.static(process.cwd() + "/public"));
@@ -26,7 +26,8 @@ const sessionMiddleWare = session({
   secret: process.env.SESSION_SECRET,
   resave: true,
   saveUninitialized: true,
-  cookie: { secure: false }
+  cookie: { secure: false },
+  store: sessionStore
 });
 app.use(sessionMiddleWare);
 app.use(passport.initialize());
@@ -40,37 +41,41 @@ myDB(async (client) => {
   auth(app, myDataBase);
 
 
-  io.use(
-    passportSocketIo.authorize({
-      cookieParser: cookieParser,
-      key: 'express.sid',
-      secret: process.env.SESSION_SECRET,
-      store: sessionStore,
-      cookie: { secure: false }
-    })
-  );
-  io.use(sharedsession(sessionMiddleWare, {
-    autoSave: true
-  }));
-
+  // io.use(
+  //   passportSocketIo.authorize({
+  //     cookieParser: cookieParser,
+  //     key: 'express.sid',
+  //     secret: process.env.SESSION_SECRET,
+  //     store: sessionStore,
+  //     cookie: { secure: false }
+  //   })
+  // );
+  // io.use(sharedsession(sessionMiddleWare, {
+  //   autoSave: true
+  // }));
+  io.use(function (socket, next) {
+    // Wrap the express middleware
+    sessionMiddleWare(socket.request, {}, next);
+  })
   var currentUsers = 0;
   io.on('connection', socket => {
     ++currentUsers;
+    console.log(socket.request.session.passport.user)
     io.emit('user', {
-      name: socket.request.user.username,
+      name: socket.request.session.passport.user,
       currentUsers,
       connected: true
     });
     socket.on('chat message', (message) => {
       console.log("SERVER: chat message: ", message)
-      io.emit('chat message', { name: socket.request.user.name, message })
+      io.emit('chat message', { name: socket.request.session.passport.user, message })
     })
     console.log('A user has connected');
     socket.on('disconnect', () => {
       console.log('A user has disconnected');
       --currentUsers;
       io.emit('user', {
-        name: socket.request.user.username,
+        name: socket.request.session.passport.user,
         currentUsers,
         connected: false
       });
