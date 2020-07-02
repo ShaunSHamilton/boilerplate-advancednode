@@ -11,7 +11,7 @@ const app = express();
 // const socketio = require('socket.io');
 const passportSocketIo = require('passport.socketio');
 const cookieParser = require('cookie-parser');
-// const sessionStore = new session.MemoryStore();
+const sessionStore = new session.MemoryStore();
 const MongoStore = require('connect-mongo')(session);
 // const sharedsession = require("express-socket.io-session");
 const http = require('http').createServer(app);
@@ -22,7 +22,17 @@ app.use("/public", express.static(process.cwd() + "/public"));
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 app.set('view engine', 'pug');
-
+//--------------------------
+const sessionMiddleWare = session({
+  secret: process.env.SESSION_SECRET,
+  resave: true,
+  saveUninitialized: true,
+  cookie: { secure: false },
+  store: sessionStore,
+  key: 'express.sid'
+});
+app.use(sessionMiddleWare);
+//----------------------------
 
 app.use(passport.initialize());
 app.use(passport.session());
@@ -32,26 +42,17 @@ myDB(async (client) => {
   const myDataBase = await client.db('myproject').collection('users');
   //-------------------------------------
   const store = new MongoStore({ client: client, dbName: 'myproject', collection: 'users' });
-  const sessionMiddleWare = session({
-    secret: process.env.SESSION_SECRET,
-    resave: true,
-    saveUninitialized: true,
-    cookie: { secure: false },
-    store: store,
-    key: 'express.sid'
-  });
-  app.use(sessionMiddleWare);
+
   //----------------------------------------
   routes(app, myDataBase);
   auth(app, myDataBase);
-
 
   io.use(
     passportSocketIo.authorize({
       cookieParser: cookieParser,
       key: 'express.sid',
       secret: process.env.SESSION_SECRET,
-      store: store,
+      store: sessionStore,
       success: onAuthorizeSuccess,
       fail: onAuthorizeFail
     })
@@ -66,22 +67,22 @@ myDB(async (client) => {
   var currentUsers = 0;
   io.on('connection', socket => {
     ++currentUsers;
-    console.log(socket.request.session.passport.user)
+    console.log("CURRENT USER: ", socket.request.user.username)
     io.emit('user', {
-      name: socket.request.session.passport.user,
+      name: socket.request.user.username,
       currentUsers,
       connected: true
     });
     socket.on('chat message', (message) => {
       console.log("SERVER: chat message: ", message)
-      io.emit('chat message', { name: socket.request.session.passport.user, message })
+      io.emit('chat message', { name: socket.request.user.username, message })
     })
     console.log('A user has connected');
     socket.on('disconnect', () => {
       console.log('A user has disconnected');
       --currentUsers;
       io.emit('user', {
-        name: socket.request.session.passport.user,
+        name: socket.request.user.username,
         currentUsers,
         connected: false
       });
