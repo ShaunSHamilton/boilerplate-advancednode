@@ -22,7 +22,6 @@ module.exports = function (app, myDataBase) {
                 if (err) { console.log(err); return done(err); }
                 if (!user) { console.log("No user"); return done(null, false); }
                 if (!bcrypt.compareSync(password, user.password)) { console.log("Invalid password"); return done(null, false); }
-                console.log('Authenticated: ', user)
                 return done(null, user);
             });
         }

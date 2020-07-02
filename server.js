@@ -8,12 +8,9 @@ const myDB = require('./connection');
 const routes = require('./routes');
 const auth = require('./auth.js');
 const app = express();
-// const socketio = require('socket.io');
 const passportSocketIo = require('passport.socketio');
 const cookieParser = require('cookie-parser');
-const sessionStore = new session.MemoryStore();
 const MongoStore = require('connect-mongo')(session);
-// const sharedsession = require("express-socket.io-session");
 const http = require('http').createServer(app);
 const io = require('socket.io')(http);
 
@@ -23,12 +20,14 @@ app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 app.set('view engine', 'pug');
 //--------------------------
+const URI = process.env.MONGO_URI;
+const store = new MongoStore({ url: URI });
 const sessionMiddleWare = session({
   secret: process.env.SESSION_SECRET,
   resave: true,
   saveUninitialized: true,
   cookie: { secure: false },
-  store: sessionStore,
+  store: store,
   key: 'express.sid'
 });
 app.use(sessionMiddleWare);
@@ -40,10 +39,7 @@ app.use(passport.session());
 
 myDB(async (client) => {
   const myDataBase = await client.db('myproject').collection('users');
-  //-------------------------------------
-  const store = new MongoStore({ client: client, dbName: 'myproject', collection: 'users' });
 
-  //----------------------------------------
   routes(app, myDataBase);
   auth(app, myDataBase);
 
@@ -52,29 +48,21 @@ myDB(async (client) => {
       cookieParser: cookieParser,
       key: 'express.sid',
       secret: process.env.SESSION_SECRET,
-      store: sessionStore,
+      store: store,
       success: onAuthorizeSuccess,
       fail: onAuthorizeFail
     })
   );
-  // io.use(sharedsession(sessionMiddleWare, {
-  //   autoSave: true
-  // }));
-  // io.use(function (socket, next) {
-  //   // Wrap the express middleware
-  //   sessionMiddleWare(socket.request, {}, next);
-  // })
+
   var currentUsers = 0;
   io.on('connection', socket => {
     ++currentUsers;
-    console.log("CURRENT USER: ", socket.request.user.username)
     io.emit('user', {
       name: socket.request.user.username,
       currentUsers,
       connected: true
     });
     socket.on('chat message', (message) => {
-      console.log("SERVER: chat message: ", message)
       io.emit('chat message', { name: socket.request.user.username, message })
     })
     console.log('A user has connected');
@@ -89,19 +77,14 @@ myDB(async (client) => {
     });
   });
 
+  http.listen(process.env.PORT || 3000, () => {
+    console.log('Listening on port: ', process.env.PORT);
+  })
 }).catch((e) => {
   app.route('/').get((req, res) => {
     res.render('pug', { title: e, message: 'Unable to login' });
   });
 });
-
-http.listen(process.env.PORT || 3000, () => {
-  console.log('Listening on port: ', process.env.PORT);
-})
-// app.listen(process.env.PORT || 3000, () => {
-//   console.log("Listening on port " + process.env.PORT);
-// });
-
 
 function onAuthorizeSuccess(data, accept) {
   console.log('successful connection to socket.io');
