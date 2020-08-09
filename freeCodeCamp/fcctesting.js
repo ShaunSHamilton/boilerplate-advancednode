@@ -37,7 +37,7 @@
 
 const fs = require('fs');
 
-const allowedOrigins = [/^https?:\/\/([\w-]+\.)*freecodecamp.org/, /^http:\/\/localhost:\d+/];
+const allowedOrigins = [/^https?:\/\/([\w-]+\.)*freecodecamp.org/, /^http:\/\/localhost:\d+/, /^https:\/\/8000.+gitpod.io/];
 
 module.exports = function (app) {
 
@@ -55,7 +55,7 @@ module.exports = function (app) {
   app.route('/_api/server.js')
     .get(function (req, res, next) {
       console.log('requested');
-      fs.readFile(process.cwd() + '/server.js', function (err, data) {
+      fs.readFile(process.cwd() + '/index.js', function (err, data) {
         if (err) return next(err);
         res.send(data.toString());
       });
