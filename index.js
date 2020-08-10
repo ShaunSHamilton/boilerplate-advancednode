@@ -42,7 +42,7 @@ myDB(async client => {
     res.redirect('/profile');
   })
 
-  app.route('/profile').get((req,res) => {
+  app.route('/profile').get(ensureAuthenticated, (req,res) => {
     res.render(process.cwd() + '/views/pug/profile');
   })
 
@@ -72,6 +72,14 @@ myDB(async client => {
     res.render('pug', { title: e, message: 'Unable to login' });
   });
 });
+
+function ensureAuthenticated(req, res, next) {
+  if (req.isAuthenticated()) {
+    return next();
+  }
+  res.redirect('/');
+};
+
 // app.listen out here...
 
 app.listen(process.env.PORT || 3000, () => {
