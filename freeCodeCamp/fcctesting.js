@@ -45,7 +45,7 @@ module.exports = function (app) {
     const origin = req.get('origin');
     if (allowedOrigins.some(regex => regex.test(origin))) {
       res.setHeader('Access-Control-Allow-Origin', origin);
-      console.log(origin);
+      // console.log(origin);
     }
 
     res.setHeader('Access-Control-Allow-Credentials', true);
